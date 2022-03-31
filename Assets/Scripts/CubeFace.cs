@@ -8,7 +8,12 @@ namespace Ribuk
     {
         private Transform _transform;
 
+        private Vector3 _originRotation;
         private Vector3 _targetRotation;
+        private bool activa = false;
+        private static float _completeSpinTime = 0.5f;
+        private float _spinTime = 0;
+
 
         private void Awake()
         {
@@ -18,21 +23,29 @@ namespace Ribuk
 
         private void Update()
         {
-            if(_transform.localEulerAngles != _targetRotation)
+            if (activa)
             {
-                _transform.localEulerAngles = Vector3.Lerp(_transform.localEulerAngles, _targetRotation, Time.deltaTime);
-            }
-            else
-            {
-                /*_transform.DetachChildren();
-                gameObject.SetActive(false);*/
+                if (_spinTime < _completeSpinTime)
+                {
+                    _spinTime += Time.deltaTime;
+                    _transform.localEulerAngles = Vector3.Lerp(_originRotation, _targetRotation, _spinTime / _completeSpinTime);
+                }
+                else
+                {
+                    _transform.localEulerAngles = _targetRotation;
+                    activa = false;
+                    DetachChildren();
+                    gameObject.SetActive(false);
+                }
             }
         }
 
         public void Spin(bool clockwise)
         {
-            _targetRotation = _transform.localEulerAngles + _transform.forward * (clockwise ? 90 : -90);
-
+            _originRotation = _transform.localEulerAngles;
+            _targetRotation = _originRotation + Vector3.forward * (clockwise ? 90 : 270);
+            _spinTime = 0;
+            activa = true;
         }
 
         private void OnTriggerEnter(Collider collider)
@@ -43,6 +56,7 @@ namespace Ribuk
 
         private void OnDisable()
         {
+            StopAllCoroutines();
             //_transform.DetachChildren();
             Debug.Log("Done");
         }
@@ -60,5 +74,12 @@ namespace Ribuk
             Spin(true);
         }
 
+        private void DetachChildren()
+        {
+            while(_transform.childCount > 0)
+            {
+                _transform.GetChild(0).parent = _transform.parent;
+            }
+        }
     }
 }
