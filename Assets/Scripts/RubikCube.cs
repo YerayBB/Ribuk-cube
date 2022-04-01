@@ -10,7 +10,6 @@ namespace Ribuk
         private Transform _transform;
         private CubeFace[] _faces = new CubeFace[6];
 
-        private uint _activeFace = 1;
         private static readonly Dictionary<Vector3, int> _faceMapping = new Dictionary<Vector3, int>()
         {
             {Vector3.forward, 5 },
@@ -33,16 +32,36 @@ namespace Ribuk
                 _faces[i] = _transform.GetChild(i).GetComponent<CubeFace>();
             }
 
-            foreach (var face in _faces)
+            /*foreach (var face in _faces)
             {
                 face.gameObject.SetActive(false);
-            }
+            }*/
         }
 
-        private void OnEnable()
+        public void SpinTopFace(bool clockwise)
         {
-            Vector3 f = _transform.worldToLocalMatrix * Vector3.back;
-            Debug.Log($"pre {f}");
+            Vector3 f = _transform.worldToLocalMatrix * Vector3.up;
+            int index = _faceMapping[f.Rounded()];
+            StartCoroutine(_faces[index].SpinCoroutine(clockwise));
+        }
+        public void SpinBottomFace(bool clockwise)
+        {
+            Vector3 f = _transform.worldToLocalMatrix * Vector3.down;
+            int index = _faceMapping[f.Rounded()];
+            StartCoroutine(_faces[index].SpinCoroutine(clockwise));
+        }
+        public void SpinLeftFace(bool clockwise)
+        {
+            Vector3 f = _transform.worldToLocalMatrix * Vector3.left;
+            int index = _faceMapping[f.Rounded()];
+            StartCoroutine(_faces[index].SpinCoroutine(clockwise));
+        }
+        public void SpinRightFace(bool clockwise)
+        {
+            Vector3 f = _transform.worldToLocalMatrix * Vector3.right;
+            int index = _faceMapping[f.Rounded()];
+            StartCoroutine(_faces[index].SpinCoroutine(clockwise));
+            /*Debug.Log($"pre {f}");
             Debug.Log(f.x);
             Debug.Log(f.y);
             Debug.Log(f.z);
@@ -51,7 +70,7 @@ namespace Ribuk
             Debug.Log(f.x);
             Debug.Log(f.y);
             Debug.Log(f.z);
-            Debug.Log(_faceMapping[f]);
+            Debug.Log(_faceMapping[f]);*/
         }
 
     }

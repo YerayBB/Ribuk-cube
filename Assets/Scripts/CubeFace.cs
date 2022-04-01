@@ -7,71 +7,72 @@ namespace Ribuk
     public class CubeFace : MonoBehaviour
     {
         private Transform _transform;
+        private Rigidbody _rigidbody;
+        private BoxCollider _boxCollider;
 
         private Vector3 _originRotation;
         private Vector3 _targetRotation;
         private bool activa = false;
-        private static float _completeSpinTime = 0.5f;
+        public static float completeSpinTime = 0.5f;
+        private static bool locked = false;
         private float _spinTime = 0;
+        private List<Transform> _contacts = new List<Transform>();
 
 
         private void Awake()
         {
             _transform = transform;
+            _rigidbody = GetComponent<Rigidbody>();
+            _boxCollider = GetComponent<BoxCollider>();
             _targetRotation = _transform.localEulerAngles;
+            _originRotation = _targetRotation;
         }
 
-        private void Update()
+        private void FixedUpdate()
         {
             if (activa)
             {
-                if (_spinTime < _completeSpinTime)
+                if (_spinTime < completeSpinTime)
                 {
                     _spinTime += Time.deltaTime;
-                    _transform.localEulerAngles = Vector3.Lerp(_originRotation, _targetRotation, _spinTime / _completeSpinTime);
+                    _transform.localEulerAngles = Vector3.Lerp(_originRotation, _targetRotation, _spinTime / completeSpinTime);
                 }
                 else
                 {
                     _transform.localEulerAngles = _targetRotation;
                     activa = false;
                     DetachChildren();
-                    gameObject.SetActive(false);
+                    //gameObject.SetActive(false);
                 }
             }
         }
 
         public void Spin(bool clockwise)
         {
+            GrabChilds();
             _originRotation = _transform.localEulerAngles;
-            _targetRotation = _originRotation + Vector3.forward * (clockwise ? 90 : 270);
+            _targetRotation = _originRotation + Vector3.forward * (clockwise ? 90 : -90);
             _spinTime = 0;
             activa = true;
         }
 
         private void OnTriggerEnter(Collider collider)
         {
-            Debug.Log($"Bump {collider.gameObject.name}");
-            collider.transform.parent = _transform;
+            _contacts.Add(collider.transform);
         }
 
-        private void OnDisable()
+        private void OnTriggerExit(Collider collider)
         {
-            StopAllCoroutines();
-            //_transform.DetachChildren();
-            Debug.Log("Done");
+            _contacts.Remove(collider.transform);
         }
 
-        private void OnEnable()
+        private void GrabChilds()
         {
-            StartCoroutine(Test());
-        }
-
-        private IEnumerator Test()
-        {
-            Debug.Log("wit for it");
-            yield return new WaitForSeconds(1);
-            Debug.Log("It begns");
-            Spin(true);
+            for(int i = 0; i< _contacts.Count; ++i)
+            {
+                _contacts[i].parent = _transform;
+            }
+            _boxCollider.enabled = false;
         }
 
         private void DetachChildren()
@@ -79,6 +80,19 @@ namespace Ribuk
             while(_transform.childCount > 0)
             {
                 _transform.GetChild(0).parent = _transform.parent;
+            }
+            _contacts.Clear();
+            locked = false;
+        }
+
+        public IEnumerator SpinCoroutine(bool clockwise)
+        {
+            if (!locked)
+            {
+                locked = true;
+                _boxCollider.enabled = true;
+                yield return new WaitForFixedUpdate();
+                Spin(clockwise);
             }
         }
     }
