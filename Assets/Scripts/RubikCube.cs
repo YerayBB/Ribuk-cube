@@ -57,7 +57,8 @@ namespace Ribuk
                 Debug.Log($"rot {rot}");
                 StartCoroutine(SpinCube(_rotation));
             }*/
-            _transform.Rotate(Vector3.up * (clockwise ? -90 : 90), Space.World);
+            StartCoroutine(RotateCube(Vector3.up * (clockwise ? -90 : 90)));
+            return;
         }
 
         public void SpinCubeVertical(bool clockwise)
@@ -77,7 +78,7 @@ namespace Ribuk
                 Debug.Log($"rot {rot}");
                 StartCoroutine(SpinCube(rot));
             }*/
-            _transform.Rotate(Vector3.right * (clockwise ? -90 : 90), Space.World);
+            StartCoroutine(RotateCube(Vector3.right * (clockwise ? -90 : 90)));
         }
 
         private IEnumerator SpinCube(Vector3 rotation)
@@ -97,6 +98,24 @@ namespace Ribuk
                 _transform.eulerAngles = rotation;
                 _onAnimation = false;
             }
+            yield return null;
+        }
+
+        private IEnumerator RotateCube(Vector3 rotation)
+        {
+            _onAnimation = true;
+            float done = 0f;
+            float actual = 0;
+            yield return null;
+            while(done < 1)
+            {
+                actual = Time.deltaTime / _spinAnimationTime;
+                actual = Mathf.Min(actual, 1 - done);
+                _transform.Rotate(rotation * actual, Space.World);
+                done += actual;
+                yield return null;
+            }
+
             yield return null;
         }
 
