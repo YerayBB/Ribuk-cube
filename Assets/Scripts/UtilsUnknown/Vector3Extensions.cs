@@ -24,6 +24,19 @@ namespace UtilsUnknown.Extensions
         {
             return new Vector3(Mathf.Round(vector3.x), Mathf.Round(vector3.y), Mathf.Round(vector3.z));
         }
+
+        public static Vector3 Multiple(this Vector3 vector3, int mul)
+        {
+            Vector3 ret = Rounded(vector3 / mul);
+            return ret*mul;
+        }
+
+        public static Vector3 Mod(this Vector3 vector3, int mod)
+        {
+            Vector3 ret = new Vector3(vector3.x % mod, vector3.y % mod, vector3.z % mod);
+            ret += Vector3.one * mod;
+            return new Vector3(ret.x % mod, ret.y % mod, ret.z % mod);
+        }
     }
 
     public static class Vector3IntExtensions

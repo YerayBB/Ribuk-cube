@@ -20,6 +20,12 @@ namespace Ribuk
             {Vector3.right, 1 }
         };
 
+        [SerializeField]
+        private float _spinAnimationTime = 0.5f;
+        private bool _onAnimation = false;
+        private Vector3 _originRotation = Vector3.zero;
+        private Vector3 _rotation = Vector3.zero;
+
 
 
 
@@ -36,6 +42,62 @@ namespace Ribuk
             {
                 face.gameObject.SetActive(false);
             }*/
+        }
+
+        public void SpinCubeHorizontal(bool clockwise)
+        {
+            /*if (!_onAnimation)
+            {
+                _originRotation = _rotation;
+                Vector3 rot = _transform.worldToLocalMatrix * Vector3.up * (clockwise ? -90 : 90);
+                //rot.Scale(_transform.localScale);
+                _rotation += rot;
+                _rotation = _rotation.Multiple(90);
+                _rotation = _rotation.Mod(360);
+                Debug.Log($"rot {rot}");
+                StartCoroutine(SpinCube(_rotation));
+            }*/
+            _transform.Rotate(Vector3.up * (clockwise ? -90 : 90), Space.World);
+        }
+
+        public void SpinCubeVertical(bool clockwise)
+        {
+            /*Vector3 rot = Vector3.right * (clockwise ? -90 : 90);
+            //rot = Vector3.Scale(rot, _transform.localScale);
+            rot += _transform.localEulerAngles;
+            rot = rot.Multiple(90);*/
+            /*if (!_onAnimation)
+            {
+                _originRotation = _rotation;
+                Vector3 rot = _transform.worldToLocalMatrix * Vector3.right * (clockwise ? -90 : 90);
+                //rot.Scale(_transform.localScale);
+                _rotation += rot;
+                _rotation = _rotation.Multiple(90);
+                _rotation = _rotation.Mod(360);
+                Debug.Log($"rot {rot}");
+                StartCoroutine(SpinCube(rot));
+            }*/
+            _transform.Rotate(Vector3.right * (clockwise ? -90 : 90), Space.World);
+        }
+
+        private IEnumerator SpinCube(Vector3 rotation)
+        {
+            Debug.Log(rotation);
+            if (!_onAnimation)
+            {
+                _onAnimation = true;
+                
+                float time = 0f;
+                while(time < _spinAnimationTime)
+                {
+                    time += Time.deltaTime;
+                    _transform.eulerAngles = Vector3.Lerp(_originRotation, rotation, time / _spinAnimationTime);
+                    yield return null;
+                }
+                _transform.eulerAngles = rotation;
+                _onAnimation = false;
+            }
+            yield return null;
         }
 
         public void SpinTopFace(bool clockwise)
