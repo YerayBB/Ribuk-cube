@@ -13,8 +13,8 @@ namespace Ribuk
         private Vector3 _originRotation;
         private Vector3 _targetRotation;
         private bool activa = false;
-        public static float completeSpinTime = 0.5f;
-        private static bool locked = false;
+        public static float completeSpinTime = 0.25f;
+        public static bool locked { get;  private set; } = false;
         private float _spinTime = 0;
         private List<Transform> _contacts = new List<Transform>();
 

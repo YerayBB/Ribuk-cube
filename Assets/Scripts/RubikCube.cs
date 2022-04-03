@@ -26,12 +26,24 @@ namespace Ribuk
         private Vector3 _originRotation = Vector3.zero;
         private Vector3 _rotation = Vector3.zero;
 
+        private Stack<Move> _movesDone;
 
+        private struct Move
+        {
+            public int face;
+            public bool clockwise;
 
+            public Move(int face, bool clockwise)
+            {
+                this.face = face;
+                this.clockwise = clockwise;
+            }
+        }
 
         private void Awake()
         {
             _transform = transform;
+            _movesDone = new Stack<Move>();
 
             for (int i = 0; i < 6; ++i)
             {
@@ -58,7 +70,6 @@ namespace Ribuk
                 StartCoroutine(SpinCube(_rotation));
             }*/
             StartCoroutine(RotateCube(Vector3.up * (clockwise ? -90 : 90)));
-            return;
         }
 
         public void SpinCubeVertical(bool clockwise)
@@ -123,25 +134,41 @@ namespace Ribuk
         {
             Vector3 f = _transform.worldToLocalMatrix * Vector3.up;
             int index = _faceMapping[f.Rounded()];
-            StartCoroutine(_faces[index].SpinCoroutine(clockwise));
+            if (!CubeFace.locked)
+            {
+                _movesDone.Push(new Move(index, clockwise));
+                StartCoroutine(_faces[index].SpinCoroutine(clockwise));
+            }
         }
         public void SpinBottomFace(bool clockwise)
         {
             Vector3 f = _transform.worldToLocalMatrix * Vector3.down;
             int index = _faceMapping[f.Rounded()];
-            StartCoroutine(_faces[index].SpinCoroutine(clockwise));
+            if (!CubeFace.locked)
+            {
+                _movesDone.Push(new Move(index, clockwise));
+                StartCoroutine(_faces[index].SpinCoroutine(clockwise));
+            }
         }
         public void SpinLeftFace(bool clockwise)
         {
             Vector3 f = _transform.worldToLocalMatrix * Vector3.left;
             int index = _faceMapping[f.Rounded()];
-            StartCoroutine(_faces[index].SpinCoroutine(clockwise));
+            if (!CubeFace.locked)
+            {
+                _movesDone.Push(new Move(index, clockwise));
+                StartCoroutine(_faces[index].SpinCoroutine(clockwise));
+            }
         }
         public void SpinRightFace(bool clockwise)
         {
             Vector3 f = _transform.worldToLocalMatrix * Vector3.right;
             int index = _faceMapping[f.Rounded()];
-            StartCoroutine(_faces[index].SpinCoroutine(clockwise));
+            if (!CubeFace.locked)
+            {
+                _movesDone.Push(new Move(index, clockwise));
+                StartCoroutine(_faces[index].SpinCoroutine(clockwise));
+            }
             /*Debug.Log($"pre {f}");
             Debug.Log(f.x);
             Debug.Log(f.y);
@@ -152,6 +179,18 @@ namespace Ribuk
             Debug.Log(f.y);
             Debug.Log(f.z);
             Debug.Log(_faceMapping[f]);*/
+        }
+
+        public void Undo()
+        {
+            if (_movesDone.Count > 0)
+            {
+                if (!CubeFace.locked)
+                {
+                    Move move = _movesDone.Pop();
+                    StartCoroutine(_faces[move.face].SpinCoroutine(!move.clockwise));
+                }
+            }
         }
 
     }
