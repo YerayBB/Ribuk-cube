@@ -26,9 +26,11 @@ namespace Ribuk
         private Vector3 _originRotation = Vector3.zero;
         private Vector3 _rotation = Vector3.zero;
 
-        private Stack<Move> _movesDone;
+        [SerializeField]
+        private int _undoCapacity = 10;
+        private DropOutStack<Move> _movesDone;
 
-        private struct Move
+        private struct Move: System.ICloneable
         {
             public int face;
             public bool clockwise;
@@ -38,12 +40,17 @@ namespace Ribuk
                 this.face = face;
                 this.clockwise = clockwise;
             }
+
+            public object Clone()
+            {
+                return new Move(this.face, this.clockwise);
+            }
         }
 
         private void Awake()
         {
             _transform = transform;
-            _movesDone = new Stack<Move>();
+            _movesDone = new DropOutStack<Move>(_undoCapacity);
 
             for (int i = 0; i < 6; ++i)
             {
