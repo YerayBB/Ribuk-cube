@@ -4,25 +4,27 @@ using UnityEngine;
 
 namespace Ribuk
 {
+    [RequireComponent(typeof(BoxCollider))]
     public class CubeFace : MonoBehaviour
     {
+        public static float completeSpinTime = 0.2f;
+        public static bool locked { get; private set; } = false;
+
         private Transform _transform;
-        private Rigidbody _rigidbody;
         private BoxCollider _boxCollider;
 
+        private List<Transform> _contacts = new List<Transform>();
         private Vector3 _originRotation;
         private Vector3 _targetRotation;
-        private bool activa = false;
-        public static float completeSpinTime = 0.25f;
-        public static bool locked { get;  private set; } = false;
+        private bool _spinning = false;
         private float _spinTime = 0;
-        private List<Transform> _contacts = new List<Transform>();
 
+
+        #region MonoBehaviourCalls
 
         private void Awake()
         {
             _transform = transform;
-            _rigidbody = GetComponent<Rigidbody>();
             _boxCollider = GetComponent<BoxCollider>();
             _targetRotation = _transform.localEulerAngles;
             _originRotation = _targetRotation;
@@ -30,7 +32,7 @@ namespace Ribuk
 
         private void FixedUpdate()
         {
-            if (activa)
+            if (_spinning)
             {
                 if (_spinTime < completeSpinTime)
                 {
@@ -40,20 +42,10 @@ namespace Ribuk
                 else
                 {
                     _transform.localEulerAngles = _targetRotation;
-                    activa = false;
+                    _spinning = false;
                     DetachChildren();
-                    //gameObject.SetActive(false);
                 }
             }
-        }
-
-        public void Spin(bool clockwise)
-        {
-            GrabChilds();
-            _originRotation = _transform.localEulerAngles;
-            _targetRotation = _originRotation + Vector3.forward * (clockwise ? 90 : -90);
-            _spinTime = 0;
-            activa = true;
         }
 
         private void OnTriggerEnter(Collider collider)
@@ -64,6 +56,28 @@ namespace Ribuk
         private void OnTriggerExit(Collider collider)
         {
             _contacts.Remove(collider.transform);
+        }
+
+        #endregion
+
+        public IEnumerator SpinCoroutine(bool clockwise)
+        {
+            if (!locked)
+            {
+                locked = true;
+                _boxCollider.enabled = true;
+                yield return new WaitForFixedUpdate();
+                Spin(clockwise);
+            }
+        }
+
+        private void Spin(bool clockwise)
+        {
+            GrabChilds();
+            _originRotation = _transform.localEulerAngles;
+            _targetRotation = _originRotation + Vector3.forward * (clockwise ? 90 : -90);
+            _spinTime = 0;
+            _spinning = true;
         }
 
         private void GrabChilds()
@@ -85,15 +99,5 @@ namespace Ribuk
             locked = false;
         }
 
-        public IEnumerator SpinCoroutine(bool clockwise)
-        {
-            if (!locked)
-            {
-                locked = true;
-                _boxCollider.enabled = true;
-                yield return new WaitForFixedUpdate();
-                Spin(clockwise);
-            }
-        }
     }
 }
