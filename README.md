@@ -1,2 +1,2 @@
 # RibukCube
- Unity project
+ Unity project for a Rubik cube simulator
