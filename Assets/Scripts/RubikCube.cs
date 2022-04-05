@@ -133,7 +133,7 @@ namespace Ribuk
             yield return null;
             while(done < 1)
             {
-                actual = Time.deltaTime / _spinAnimationTime;
+                actual = _spinAnimationTime > 0 ? Time.deltaTime / _spinAnimationTime : 1;
                 actual = Mathf.Min(actual, 1 - done);
                 _transform.Rotate(rotation * actual, Space.World);
                 done += actual;
@@ -141,6 +141,27 @@ namespace Ribuk
             }
 
             yield return null;
+        }
+
+        public void Randomize()
+        {
+            StartCoroutine(RandomizeCoroutine(50));
+        }
+
+        private IEnumerator RandomizeCoroutine(int spins)
+        {
+            float faceTime = CubeFace.completeSpinTime;
+            float cubeTime = _spinAnimationTime;
+            CubeFace.completeSpinTime = 0;
+            _spinAnimationTime = 0;
+            for (int i = 0; i < spins; ++i)
+            {
+                yield return new WaitWhile(() => CubeFace.locked);
+                StartCoroutine(_faces[_faceMapping[RandomExtra.RandomAxis()]].SpinCoroutine(RandomExtra.RandomBool()));
+            }
+            CubeFace.completeSpinTime = faceTime;
+            _spinAnimationTime = cubeTime;
+            _movesDone.Clear();
         }
     }
 }

@@ -34,7 +34,7 @@ namespace Ribuk
         {
             if (_spinning)
             {
-                if (_spinTime < completeSpinTime)
+                if (_spinTime < completeSpinTime && completeSpinTime > 0)
                 {
                     _spinTime += Time.deltaTime;
                     _transform.localEulerAngles = Vector3.Lerp(_originRotation, _targetRotation, _spinTime / completeSpinTime);
